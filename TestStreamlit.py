@@ -12,7 +12,7 @@ global_interest_rate = 110
 
 def main():
     CreateStreamLitInterface()
-    AppTest.run(*, timeout=None)
+    #AppTest.run(*, timeout=None)
 
 
 def CreateStreamLitInterface():
