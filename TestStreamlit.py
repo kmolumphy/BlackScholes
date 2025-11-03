@@ -36,30 +36,28 @@ def CreateStreamLitInterface():
     global_interest_rate = st.number_input("Risk-Free Interest Rate ", placeholder=globals()['global_interest_rate'])
 
     # Create heat maps based on inputs
-    CreateHeatMap("PutHeatMap", CreatePutDataframe())
-    CreateHeatMap("Call Heat Map", CreateCallDataframe())
+    PutDF = pd.DataFrame(CreatePutData(), columns=[f'Col {i}' for i in range(global_map_dimension)])
+    CallDF = pd.DataFrame(CreateCallData(), columns=[f'Col {i}' for i in range(global_map_dimension)])
+    CreateHeatMap("PutHeatMap", PutDF)
+    CreateHeatMap("Call Heat Map", CallDF)
 
 def CreatePutHeatMap():
     fig, ax = plt.subplots() 
 
 def CreateHeatMap(title, dataframe):
-    print(dataframe)
-
-    data = np.random.rand(10, 10)
-    df = pd.DataFrame(data, columns=[f'Col {i}' for i in range(10)])
     # Create a heatmap using Seaborn
     plt.figure(figsize=(global_map_dimension, global_map_dimension))
-    sns.heatmap(df, annot=True, cmap='coolwarm')
+    sns.heatmap(dataframe, annot=True, cmap='coolwarm')
 
     # Show the plot in Streamlit
     st.pyplot(plt)
 
 
-def CreateCallDataframe():
+def CreateCallData():
     data = []
     for row in range(global_map_dimension):
         data.append(CreateCallRow(row))    
-    df = pd.DataFrame(data)
+    return data
 
 def CreateCallRow(CurrentRow):
     row = []
@@ -70,11 +68,11 @@ def CreateCallRow(CurrentRow):
         row.append(CalculateCall(CurrentVolatility, CurrentSpotPrice))
     return row
 
-def CreatePutDataframe():
+def CreatePutData():
     data = []
     for row in range(global_map_dimension):
         data.append(CreatePutRow(row))
-    df = pd.DataFrame(data)
+    return data
 
 def CreatePutRow(CurrentRow):
     row = []
@@ -83,7 +81,6 @@ def CreatePutRow(CurrentRow):
     for CurrentColumn in range(global_map_dimension):
         CurrentSpotPrice = GetCurrentSpotPrice(CurrentColumn)
         row.append(CalculatePut(CurrentVolatility, CurrentSpotPrice))
-    print(row)
     return row
 
 
