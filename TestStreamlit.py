@@ -28,8 +28,10 @@ def main():
 def CreateStreamLitInterface():
     st.write("Black Scholes")
 
+    InitDefaultGlobals()
+
     # Create Input Var Widgets
-    global_stock_price = st.number_input("Stock Price", placeholder=global_stock_price)
+    global_stock_price = st.number_input("Stock Price", placeholder=globals()['global_strike_price'])
     global_strike_price = st.number_input("Strike Price", placeholder=globals()['global_strike_price'])
     global_time_to_expiry = st.number_input("Time to Expiration", placeholder=globals()['global_time_to_expiry'])
     global_volatility = st.number_input("Volatility", placeholder=globals()['global_volatility'])
@@ -40,6 +42,14 @@ def CreateStreamLitInterface():
     CallDF = pd.DataFrame(CreateCallData(), columns=[f'Col {i}' for i in range(global_map_dimension)])
     CreateHeatMap("PutHeatMap", PutDF)
     CreateHeatMap("Call Heat Map", CallDF)
+
+def InitDefaultGlobals():
+    globals()['global_stock_price'] = 100
+    globals()['global_strike_price'] = 110
+    globals()['global_time_to_expiry'] = 1.1
+    globals()['global_volatility'] = 0.2
+    globals()['global_interest_rate'] = 0.1
+    
 
 def CreatePutHeatMap():
     fig, ax = plt.subplots() 
