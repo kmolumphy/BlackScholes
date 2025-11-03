@@ -29,7 +29,7 @@ def CreateStreamLitInterface():
     st.write("Black Scholes")
 
     # Create Input Var Widgets
-    global_stock_price = st.number_input("Stock Price", placeholder=globals()['global_stock_price'])
+    global_stock_price = st.number_input("Stock Price", placeholder=global_stock_price)
     global_strike_price = st.number_input("Strike Price", placeholder=globals()['global_strike_price'])
     global_time_to_expiry = st.number_input("Time to Expiration", placeholder=globals()['global_time_to_expiry'])
     global_volatility = st.number_input("Volatility", placeholder=globals()['global_volatility'])
@@ -46,8 +46,8 @@ def CreatePutHeatMap():
 
 def CreateHeatMap(title, dataframe):
     # Create a heatmap using Seaborn
-    plt.figure(figsize=(global_map_dimension, global_map_dimension))
-    sns.heatmap(dataframe, annot=True, cmap='coolwarm')
+    plt.figure(figsize=(global_map_dimension, global_map_dimension),)
+    sns.heatmap(dataframe, annot=True, cmap='coolwarm',index="Volatility", columns="Spot Price", square=true)
 
     # Show the plot in Streamlit
     st.pyplot(plt)
