@@ -45,12 +45,18 @@ def CreateStreamLitInterface():
 
     # Create heat maps based on inputs
     PutDF = pd.DataFrame(CreatePutData(), columns=[f'Col {i}' for i in range(global_map_dimension)])
-    #PutDF.columns = global_volatility_intervals
+    #PutDF.rename(index=global_volatility_intervals, inplace=True)
+    PutDF.index = global_spot_price_intervals
+
     CallDF = pd.DataFrame(CreateCallData(), columns=[f'Col {i}' for i in range(global_map_dimension)])
+    #CallDF.rename(columns=global_spot_price_intervals, inplace=True)
+    CallDF.index = global_spot_price_intervals
+
+    st.write("Put Heat Map")
     CreateHeatMap("PutHeatMap", PutDF)
-    print(PutDF)
+
+    st.write("Call Heat Map")
     CreateHeatMap("Call Heat Map", CallDF)
-    print(CallDF)
 
 def InitDefaultGlobals():
     globals()['global_stock_price'] = 31.5
@@ -71,8 +77,8 @@ def InitDefaultGlobals():
 
 def CreateHeatMap(title, dataframe):
     # Create a heatmap using Seaborn
-    plt.figure(figsize=(global_map_dimension, global_map_dimension),)
-    sns.heatmap(dataframe, annot=True, cmap='coolwarm', square=True, xticklabels=True, yticklabels=True) #index="Volatility", columns="Spot Price", )
+    plt.figure(figsize=(global_map_dimension, global_map_dimension))
+    sns.heatmap(dataframe, annot=True, fmt=".01f", cmap='coolwarm', square=True, xticklabels=True, yticklabels=True) #index="Volatility", columns="Spot Price", )
 
     # Show the plot in Streamlit
     st.pyplot(plt)
