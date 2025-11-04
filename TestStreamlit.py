@@ -48,7 +48,9 @@ def CreateStreamLitInterface():
     #PutDF.columns = global_volatility_intervals
     CallDF = pd.DataFrame(CreateCallData(), columns=[f'Col {i}' for i in range(global_map_dimension)])
     CreateHeatMap("PutHeatMap", PutDF)
+    print(PutDF)
     CreateHeatMap("Call Heat Map", CallDF)
+    print(CallDF)
 
 def InitDefaultGlobals():
     globals()['global_stock_price'] = 100
@@ -68,8 +70,6 @@ def InitDefaultGlobals():
     globals()['global_volatility_intervals'] = temp_global_volatility_intervals
     globals()['global_spot_price_intervals'] = temp_global_spot_price_intervals    
 
-def CreatePutHeatMap():
-    fig, ax = plt.subplots() 
 
 def CreateHeatMap(title, dataframe):
     # Create a heatmap using Seaborn
@@ -98,15 +98,15 @@ def CreatePutData():
     return data
 
 def CalculateCallOriginalBlackScholes(Volatility, SpotPrice):
-    D1 = (math.log(SpotPrice / global_strike_price)) + ((global_interest_rate + (global_volatility**2 / 2)) * global_time_to_expiry) / (global_volatility * math.sqrt(global_time_to_expiry))
-    D2 = D1 - global_volatility * math.sqrt(global_time_to_expiry)
+    D1 = (math.log(SpotPrice / global_strike_price)) + ((global_interest_rate + (Volatility**2 / 2)) * global_time_to_expiry) / (Volatility * math.sqrt(global_time_to_expiry))
+    D2 = D1 - Volatility * math.sqrt(global_time_to_expiry)
     CallPrice = (SpotPrice * norm.cdf(D1)) - (global_strike_price * math.exp(-global_interest_rate * global_time_to_expiry) * norm.cdf(D2))
     return CallPrice
 
 def CalculatePutOriginalBlackScholes(Volatility, SpotPrice):
-    D1 = (math.log(SpotPrice / global_strike_price)) + ((global_interest_rate + (global_volatility**2 / 2)) * global_time_to_expiry) / (global_volatility * math.sqrt(global_time_to_expiry))
-    D2 = D1 - global_volatility * math.sqrt(global_time_to_expiry)
-    PutPrice = (global_strike_price * math.exp(-global_interest_rate * global_time_to_expiry) * -norm.cdf(-D2)) - (SpotPrice * norm.cdf(-D1))
+    D1 = (math.log(SpotPrice / global_strike_price)) + ((global_interest_rate + (Volatility**2 / 2)) * global_time_to_expiry) / (Volatility * math.sqrt(global_time_to_expiry))
+    D2 = D1 - Volatility * math.sqrt(global_time_to_expiry)
+    PutPrice = (global_strike_price * math.exp(-global_interest_rate * global_time_to_expiry) * norm.cdf(-D2)) - (SpotPrice * norm.cdf(-D1))
     return PutPrice
 
 def GetVolatility(RowNum):
