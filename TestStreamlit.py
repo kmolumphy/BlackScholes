@@ -114,10 +114,12 @@ def CalculatePutOriginalBlackScholes(Volatility, SpotPrice):
     return PutPrice
 
 def GetVolatility(RowNum):
-    return (RowNum - 0) * (global_max_volatility - global_min_volatility) / (global_map_dimension - 1) + global_min_volatility
+    Volatility = (RowNum - 0) * (global_max_volatility - global_min_volatility) / (global_map_dimension - 1) + global_min_volatility
+    return round(Volatility, 2)
 
 def GetCurrentSpotPrice(ColumnNum):
-    return (ColumnNum - 0) * (global_max_spot_price - global_min_spot_price) / (global_map_dimension - 1) + global_min_spot_price
+    SpotPrice = (ColumnNum - 0) * (global_max_spot_price - global_min_spot_price) / (global_map_dimension - 1) + global_min_spot_price
+    return round(SpotPrice, 2)
 
 
 if __name__ == "__main__":
