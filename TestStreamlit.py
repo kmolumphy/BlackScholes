@@ -8,11 +8,11 @@ import math
 
 
 # Define Black Scholes inputs as globals for ease of access
-global_stock_price
-global_strike_price
-global_time_to_expiry
-global_volatility
-global_interest_rate
+global_stock_price = -1
+global_strike_price = -1
+global_time_to_expiry = -1
+global_volatility = -1
+global_interest_rate = -1
 
 # Define Heat Map Variables
 global_map_dimension = 10
@@ -58,7 +58,7 @@ def InitDefaultGlobals():
     globals()['global_time_to_expiry'] = 3.5
     globals()['global_volatility'] = 0.5
     globals()['global_interest_rate'] = 0.05
-    
+
     temp_global_volatility_intervals = []
     temp_global_spot_price_intervals = []
     for num in range(global_map_dimension):
