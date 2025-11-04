@@ -66,8 +66,7 @@ def InitDefaultGlobals():
         temp_global_spot_price_intervals.append(GetCurrentSpotPrice(num))
 
     globals()['global_volatility_intervals'] = temp_global_volatility_intervals
-    globals()['global_spot_price_intervals'] = temp_global_spot_price_intervals
-    
+    globals()['global_spot_price_intervals'] = temp_global_spot_price_intervals    
 
 def CreatePutHeatMap():
     fig, ax = plt.subplots() 
@@ -80,46 +79,41 @@ def CreateHeatMap(title, dataframe):
     # Show the plot in Streamlit
     st.pyplot(plt)
 
-
 def CreateCallData():
     data = []
     for CurrentRow in range(global_map_dimension):
         row = []
         for CurrentColumn in range(global_map_dimension):
-            row.append(CalculateCall(global_volatility_intervals[CurrentRow], global_spot_price_intervals[CurrentColumn]))
+            row.append(CalculateCallOriginalBlackScholes(global_volatility_intervals[CurrentRow], global_spot_price_intervals[CurrentColumn]))
         data.append(row)    
     return data
-
-
 
 def CreatePutData():
     data = []
     for CurrentRow in range(global_map_dimension):
         row = []
         for CurrentColumn in range(global_map_dimension):
-            row.append(CalculatePut(global_volatility_intervals[CurrentRow], global_spot_price_intervals[CurrentColumn]))
+            row.append(CalculatePutOriginalBlackScholes(global_volatility_intervals[CurrentRow], global_spot_price_intervals[CurrentColumn]))
         data.append(row)    
     return data
 
 def CalculateCallOriginalBlackScholes(Volatility, SpotPrice):
-    D1 = (math.log(SpotPrice / global_strike_price)) + ((global_interest_rate + (global_volatility^2 / 2)) * global_time_to_expiry) / (global_volatility * math.sqrt(global_time_to_expiry))
+    D1 = (math.log(SpotPrice / global_strike_price)) + ((global_interest_rate + (global_volatility**2 / 2)) * global_time_to_expiry) / (global_volatility * math.sqrt(global_time_to_expiry))
     D2 = D1 - global_volatility * math.sqrt(global_time_to_expiry)
     CallPrice = (SpotPrice * norm.cdf(D1)) - (global_strike_price * math.exp(-global_interest_rate * global_time_to_expiry) * norm.cdf(D2))
     return CallPrice
 
 def CalculatePutOriginalBlackScholes(Volatility, SpotPrice):
-    D1 = (math.log(SpotPrice / global_strike_price)) + ((global_interest_rate + (global_volatility^2 / 2)) * global_time_to_expiry) / (global_volatility * math.sqrt(global_time_to_expiry))
+    D1 = (math.log(SpotPrice / global_strike_price)) + ((global_interest_rate + (global_volatility**2 / 2)) * global_time_to_expiry) / (global_volatility * math.sqrt(global_time_to_expiry))
     D2 = D1 - global_volatility * math.sqrt(global_time_to_expiry)
     PutPrice = (global_strike_price * math.exp(-global_interest_rate * global_time_to_expiry) * -norm.cdf(-D2)) - (SpotPrice * norm.cdf(-D1))
     return PutPrice
 
 def GetVolatility(RowNum):
-    CurrentVolatility = (RowNum / (global_map_dimension - 1)) * ((global_max_volatility - global_min_volatility) + global_min_volatility)
-    return CurrentVolatility
+    return (RowNum - 0) * (global_max_volatility - global_min_volatility) / (global_map_dimension - 1) + global_min_volatility
 
 def GetCurrentSpotPrice(ColumnNum):
-    CurrentVolatility = (ColumnNum / (global_map_dimension - 1)) * ((global_max_spot_price - global_min_spot_price) + global_min_spot_price)
-    return CurrentVolatility
+    return (ColumnNum - 0) * (global_max_spot_price - global_min_spot_price) / (global_map_dimension - 1) + global_min_spot_price
 
 
 if __name__ == "__main__":
