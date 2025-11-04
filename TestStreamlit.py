@@ -19,6 +19,9 @@ global_max_spot_price = 110 #global_stock_price * 1.1
 global_min_volatility = 0.01
 global_max_volatility = 1
 
+# Hold Graph Interval Values
+global_volatility_intervals = []
+global_spot_price_intervals = []
 
 def main():
     CreateStreamLitInterface()
@@ -39,6 +42,7 @@ def CreateStreamLitInterface():
 
     # Create heat maps based on inputs
     PutDF = pd.DataFrame(CreatePutData(), columns=[f'Col {i}' for i in range(global_map_dimension)])
+    #PutDF.columns = global_volatility_intervals
     CallDF = pd.DataFrame(CreateCallData(), columns=[f'Col {i}' for i in range(global_map_dimension)])
     CreateHeatMap("PutHeatMap", PutDF)
     CreateHeatMap("Call Heat Map", CallDF)
@@ -49,6 +53,17 @@ def InitDefaultGlobals():
     globals()['global_time_to_expiry'] = 1.1
     globals()['global_volatility'] = 0.2
     globals()['global_interest_rate'] = 0.1
+
+    globals()['global_interest_rate'] = 10
+
+    temp_global_volatility_intervals = []
+    temp_global_spot_price_intervals = []
+    for num in range(global_map_dimension):
+        temp_global_volatility_intervals.append(GetVolatility(num))
+        temp_global_spot_price_intervals.append(GetCurrentSpotPrice(num))
+
+    globals()['global_volatility_intervals'] = temp_global_volatility_intervals
+    globals()['global_spot_price_intervals'] = temp_global_spot_price_intervals
     
 
 def CreatePutHeatMap():
@@ -57,7 +72,7 @@ def CreatePutHeatMap():
 def CreateHeatMap(title, dataframe):
     # Create a heatmap using Seaborn
     plt.figure(figsize=(global_map_dimension, global_map_dimension),)
-    sns.heatmap(dataframe, annot=True, cmap='coolwarm',index="Volatility", columns="Spot Price", square=True)
+    sns.heatmap(dataframe, annot=True, cmap='coolwarm', square=True) #index="Volatility", columns="Spot Price", )
 
     # Show the plot in Streamlit
     st.pyplot(plt)
@@ -65,34 +80,23 @@ def CreateHeatMap(title, dataframe):
 
 def CreateCallData():
     data = []
-    for row in range(global_map_dimension):
-        data.append(CreateCallRow(row))    
+    for CurrentRow in range(global_map_dimension):
+        row = []
+        for CurrentColumn in range(global_map_dimension):
+            row.append(CalculateCall(global_volatility_intervals[CurrentRow], global_spot_price_intervals[CurrentColumn]))
+        data.append(row)    
     return data
 
-def CreateCallRow(CurrentRow):
-    row = []
-    # Map Current row to volatility
-    CurrentVolatility = GetVolatility(CurrentRow)
-    for CurrentColumn in range(global_map_dimension):
-        CurrentSpotPrice = GetCurrentSpotPrice(CurrentColumn)
-        row.append(CalculateCall(CurrentVolatility, CurrentSpotPrice))
-    return row
+
 
 def CreatePutData():
     data = []
-    for row in range(global_map_dimension):
-        data.append(CreatePutRow(row))
+    for CurrentRow in range(global_map_dimension):
+        row = []
+        for CurrentColumn in range(global_map_dimension):
+            row.append(CalculatePut(global_volatility_intervals[CurrentRow], global_spot_price_intervals[CurrentColumn]))
+        data.append(row)    
     return data
-
-def CreatePutRow(CurrentRow):
-    row = []
-    # Map Current row to volatility
-    CurrentVolatility = GetVolatility(CurrentRow)
-    for CurrentColumn in range(global_map_dimension):
-        CurrentSpotPrice = GetCurrentSpotPrice(CurrentColumn)
-        row.append(CalculatePut(CurrentVolatility, CurrentSpotPrice))
-    return row
-
 
 def CalculateCall(Volatility, SpotPrice):
     # Temp return val to test
