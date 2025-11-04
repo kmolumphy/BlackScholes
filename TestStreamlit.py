@@ -8,11 +8,11 @@ import math
 
 
 # Define Black Scholes inputs as globals for ease of access
-global_stock_price = 100
-global_strike_price = 110
-global_time_to_expiry = 1.1
-global_volatility = 0.2
-global_interest_rate = 0.1
+global_stock_price
+global_strike_price
+global_time_to_expiry
+global_volatility
+global_interest_rate
 
 # Define Heat Map Variables
 global_map_dimension = 10
@@ -53,14 +53,12 @@ def CreateStreamLitInterface():
     print(CallDF)
 
 def InitDefaultGlobals():
-    globals()['global_stock_price'] = 100
-    globals()['global_strike_price'] = 110
-    globals()['global_time_to_expiry'] = 1.1
-    globals()['global_volatility'] = 0.2
-    globals()['global_interest_rate'] = 0.1
-
-    globals()['global_interest_rate'] = 10
-
+    globals()['global_stock_price'] = 31.5
+    globals()['global_strike_price'] = 22.75
+    globals()['global_time_to_expiry'] = 3.5
+    globals()['global_volatility'] = 0.5
+    globals()['global_interest_rate'] = 0.05
+    
     temp_global_volatility_intervals = []
     temp_global_spot_price_intervals = []
     for num in range(global_map_dimension):
