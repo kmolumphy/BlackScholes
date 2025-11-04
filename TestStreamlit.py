@@ -57,7 +57,7 @@ def CreatePutHeatMap():
 def CreateHeatMap(title, dataframe):
     # Create a heatmap using Seaborn
     plt.figure(figsize=(global_map_dimension, global_map_dimension),)
-    sns.heatmap(dataframe, annot=True, cmap='coolwarm',index="Volatility", columns="Spot Price", square=true)
+    sns.heatmap(dataframe, annot=True, cmap='coolwarm',index="Volatility", columns="Spot Price", square=True)
 
     # Show the plot in Streamlit
     st.pyplot(plt)
