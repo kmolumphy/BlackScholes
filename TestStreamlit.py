@@ -8,18 +8,14 @@ import math
 
 
 # Define Black Scholes inputs as globals for ease of access
-global_stock_price = 31.5
-global_strike_price = 22.75
-global_time_to_expiry = 3.5
-global_volatility = 0.5
-global_interest_rate = 0.05
+#global_stock_price = 31.5
+#global_strike_price = 22.75
+#global_time_to_expiry = 3.5
+#global_volatility = 0.5
+#global_interest_rate = 0.05
 
 # Define Heat Map Variables
 global_map_dimension = 10
-global_min_spot_price = 90 #global_stock_price * 0.9
-global_max_spot_price = 110 #global_stock_price * 1.1
-global_min_volatility = 0.01
-global_max_volatility = 1
 
 # Hold Graph Interval Values
 global_volatility_intervals = []
@@ -33,21 +29,24 @@ def main():
 def CreateStreamLitInterface():
     st.write("Black Scholes")
 
-    InitDefaultGlobals()
+    global_stock_price = st.number_input("Stock Price", value=30.00, min_value=0.01, placeholder="Enter Stock Price: ")
+    global_strike_price = st.number_input("Strike Price", value=20.00, min_value=0.01, placeholder="Enter Strike Price: ")
+    global_time_to_expiry = st.number_input("Time to Expiration", value=5.00, min_value=0.01, placeholder="Enter Time To Expiry: ")
+    global_volatility = st.number_input("Volatility", value=0.50, min_value=0.01, placeholder="Enter Volatility: ")
+    global_interest_rate = st.number_input("Risk-Free Interest Rate ", value=0.05, min_value=0.01, placeholder="Enter Global Interest Rate: ")
 
-    # Create Input Var Widgets
-    global_stock_price = st.number_input("Stock Price", placeholder=str(globals()['global_stock_price']))
-    global_strike_price = st.number_input("Strike Price", placeholder=str(globals()['global_strike_price']))
-    global_time_to_expiry = st.number_input("Time to Expiration", placeholder=str(globals()['global_time_to_expiry']))
-    global_volatility = st.number_input("Volatility", placeholder=str(globals()['global_volatility']))
-    global_interest_rate = st.number_input("Risk-Free Interest Rate ", placeholder=str(globals()['global_interest_rate']))
+    InitDefaultGlobals(global_volatility, global_stock_price)
+
+    #global_strike_price = max(0.01, global_strike_price) # Cannot be 0
 
     # Create heat maps based on inputs
-    PutDF = pd.DataFrame(CreatePutData(), columns=[f'Col {i}' for i in range(global_map_dimension)])
+    PutData = CreatePutData(global_strike_price, global_time_to_expiry, global_interest_rate)
+    PutDF = pd.DataFrame(PutData, columns=[f'Col {i}' for i in range(global_map_dimension)])
     #PutDF.rename(index=global_volatility_intervals, inplace=True)
     PutDF.index = global_spot_price_intervals
 
-    CallDF = pd.DataFrame(CreateCallData(), columns=[f'Col {i}' for i in range(global_map_dimension)])
+    CallData = CreateCallData(global_strike_price, global_time_to_expiry, global_interest_rate)
+    CallDF = pd.DataFrame(CallData, columns=[f'Col {i}' for i in range(global_map_dimension)])
     #CallDF.rename(columns=global_spot_price_intervals, inplace=True)
     CallDF.index = global_spot_price_intervals
 
@@ -57,18 +56,16 @@ def CreateStreamLitInterface():
     st.write("Call Heat Map")
     CreateHeatMap("Call Heat Map", CallDF)
 
-def InitDefaultGlobals():
-    #globals()['global_stock_price'] = 31.5
-    #globals()['global_strike_price'] = 22.75
-    #globals()['global_time_to_expiry'] = 3.5
-    #globals()['global_volatility'] = 0.5
-    #globals()['global_interest_rate'] = 0.05
-
+def InitDefaultGlobals(volatility, spot_price):
     temp_global_volatility_intervals = []
     temp_global_spot_price_intervals = []
+    global_min_volatility = volatility * 0.5
+    global_max_volatility = volatility * 1.5
+    global_min_spot_price = spot_price * 0.5
+    global_max_spot_price = spot_price * 1.5
     for num in range(global_map_dimension):
-        temp_global_volatility_intervals.append(GetVolatility(num))
-        temp_global_spot_price_intervals.append(GetCurrentSpotPrice(num))
+        temp_global_volatility_intervals.append(GetVolatility(num, global_min_volatility, global_max_volatility))
+        temp_global_spot_price_intervals.append(GetCurrentSpotPrice(num, global_min_spot_price, global_max_spot_price))
 
     globals()['global_volatility_intervals'] = temp_global_volatility_intervals
     globals()['global_spot_price_intervals'] = temp_global_spot_price_intervals    
@@ -82,41 +79,41 @@ def CreateHeatMap(title, dataframe):
     # Show the plot in Streamlit
     st.pyplot(plt)
 
-def CreateCallData():
+def CreateCallData(strike_price, time_to_expiry, interest_rate):
     data = []
     for CurrentRow in range(global_map_dimension):
         row = []
         for CurrentColumn in range(global_map_dimension):
-            row.append(CalculateCallOriginalBlackScholes(global_volatility_intervals[CurrentRow], global_spot_price_intervals[CurrentColumn]))
+            row.append(CalculateCallOriginalBlackScholes(global_volatility_intervals[CurrentRow], global_spot_price_intervals[CurrentColumn], strike_price, time_to_expiry, interest_rate))
         data.append(row)    
     return data
 
-def CreatePutData():
+def CreatePutData(strike_price, time_to_expiry, interest_rate):
     data = []
     for CurrentRow in range(global_map_dimension):
         row = []
         for CurrentColumn in range(global_map_dimension):
-            row.append(CalculatePutOriginalBlackScholes(global_volatility_intervals[CurrentRow], global_spot_price_intervals[CurrentColumn]))
+            row.append(CalculatePutOriginalBlackScholes(global_volatility_intervals[CurrentRow], global_spot_price_intervals[CurrentColumn], strike_price, time_to_expiry, interest_rate))
         data.append(row)    
     return data
 
-def CalculateCallOriginalBlackScholes(Volatility, SpotPrice):
-    D1 = (math.log(SpotPrice / global_strike_price)) + ((global_interest_rate + (Volatility**2 / 2)) * global_time_to_expiry) / (Volatility * math.sqrt(global_time_to_expiry))
-    D2 = D1 - Volatility * math.sqrt(global_time_to_expiry)
-    CallPrice = (SpotPrice * norm.cdf(D1)) - (global_strike_price * math.exp(-global_interest_rate * global_time_to_expiry) * norm.cdf(D2))
+def CalculateCallOriginalBlackScholes(volatility_interval, spot_price_interval, strike_price, time_to_expiry, interest_rate):
+    D1 = (math.log(spot_price_interval / strike_price)) + ((interest_rate + (volatility_interval**2 / 2)) * time_to_expiry) / (volatility_interval * math.sqrt(time_to_expiry))
+    D2 = D1 - volatility_interval * math.sqrt(time_to_expiry)
+    CallPrice = (spot_price_interval * norm.cdf(D1)) - (strike_price * math.exp(-interest_rate * time_to_expiry) * norm.cdf(D2))
     return CallPrice
 
-def CalculatePutOriginalBlackScholes(Volatility, SpotPrice):
-    D1 = (math.log(SpotPrice / global_strike_price)) + ((global_interest_rate + (Volatility**2 / 2)) * global_time_to_expiry) / (Volatility * math.sqrt(global_time_to_expiry))
-    D2 = D1 - Volatility * math.sqrt(global_time_to_expiry)
-    PutPrice = (global_strike_price * math.exp(-global_interest_rate * global_time_to_expiry) * norm.cdf(-D2)) - (SpotPrice * norm.cdf(-D1))
+def CalculatePutOriginalBlackScholes(volatility_interval, spot_price_interval, strike_price, time_to_expiry, interest_rate):
+    D1 = (math.log(spot_price_interval / strike_price)) + ((interest_rate + (volatility_interval**2 / 2)) * time_to_expiry) / (volatility_interval * math.sqrt(time_to_expiry))
+    D2 = D1 - volatility_interval * math.sqrt(time_to_expiry)
+    PutPrice = (strike_price * math.exp(-interest_rate * time_to_expiry) * norm.cdf(-D2)) - (spot_price_interval * norm.cdf(-D1))
     return PutPrice
 
-def GetVolatility(RowNum):
+def GetVolatility(RowNum, global_min_volatility, global_max_volatility):
     Volatility = (RowNum - 0) * (global_max_volatility - global_min_volatility) / (global_map_dimension - 1) + global_min_volatility
     return round(Volatility, 2)
 
-def GetCurrentSpotPrice(ColumnNum):
+def GetCurrentSpotPrice(ColumnNum, global_min_spot_price, global_max_spot_price):
     SpotPrice = (ColumnNum - 0) * (global_max_spot_price - global_min_spot_price) / (global_map_dimension - 1) + global_min_spot_price
     return round(SpotPrice, 2)
 
