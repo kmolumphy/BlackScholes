@@ -88,7 +88,7 @@ def InitDefaultGlobals(volatility, spot_price):
 def CreateHeatMap(title, dataframe):
     # Create a heatmap using Seaborn
     plt.figure(figsize=(global_map_dimension, global_map_dimension))
-    sns.heatmap(dataframe, annot=True, fmt=".01f", cbar=False, cmap='coolwarm', square=True, xticklabels=True, yticklabels=True)
+    sns.heatmap(dataframe, annot=True, fmt=".2f", cbar=False, cmap='RdYlGn', square=True, xticklabels=True, yticklabels=True)
     plt.title(title, fontsize = 20)
     plt.xlabel('Volatility', fontsize = 15) # x-axis label with fontsize 15
     plt.ylabel('Spot Price', fontsize = 15) # y-axis label with fontsize 15
