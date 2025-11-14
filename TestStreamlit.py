@@ -15,7 +15,7 @@ import math
 #global_interest_rate = 0.05
 
 # Define Heat Map Variables
-global_map_dimension = 10
+global_map_dimension = 11 # Default to 11 so input vars have output for exact val in center
 
 # Hold Graph Interval Values
 global_volatility_intervals = []
@@ -27,13 +27,16 @@ def main():
 
 
 def CreateStreamLitInterface():
-    st.write("Black Scholes")
+    st.title("Black Scholes")
+    st.set_page_config(layout="wide")
 
-    global_stock_price = st.number_input("Stock Price", value=30.00, min_value=0.01, placeholder="Enter Stock Price: ")
-    global_strike_price = st.number_input("Strike Price", value=20.00, min_value=0.01, placeholder="Enter Strike Price: ")
-    global_time_to_expiry = st.number_input("Time to Expiration", value=5.00, min_value=0.01, placeholder="Enter Time To Expiry: ")
-    global_volatility = st.number_input("Volatility", value=0.50, min_value=0.01, placeholder="Enter Volatility: ")
-    global_interest_rate = st.number_input("Risk-Free Interest Rate ", value=0.05, min_value=0.01, placeholder="Enter Global Interest Rate: ")
+    with st.sidebar:
+        st.write("Input Parameters:")
+        global_stock_price = st.number_input("Stock Price", value=30.00, min_value=0.01, placeholder="Enter Stock Price: ")
+        global_strike_price = st.number_input("Strike Price", value=20.00, min_value=0.01, placeholder="Enter Strike Price: ")
+        global_time_to_expiry = st.number_input("Time to Expiration", value=5.00, min_value=0.01, placeholder="Enter Time To Expiry: ")
+        global_volatility = st.number_input("Volatility", value=0.50, min_value=0.01, placeholder="Enter Volatility: ")
+        global_interest_rate = st.number_input("Risk-Free Interest Rate ", value=0.05, min_value=0.01, placeholder="Enter Global Interest Rate: ")
 
     InitDefaultGlobals(global_volatility, global_stock_price)
 
@@ -41,20 +44,31 @@ def CreateStreamLitInterface():
 
     # Create heat maps based on inputs
     PutData = CreatePutData(global_strike_price, global_time_to_expiry, global_interest_rate)
-    PutDF = pd.DataFrame(PutData, columns=[f'Col {i}' for i in range(global_map_dimension)])
-    #PutDF.rename(index=global_volatility_intervals, inplace=True)
-    PutDF.index = global_spot_price_intervals
+    PutDF = pd.DataFrame(PutData, columns=[global_volatility_intervals[i] for i in range(global_map_dimension)])
+
+    PutDF.index = global_spot_price_intervals #Edit row labels
 
     CallData = CreateCallData(global_strike_price, global_time_to_expiry, global_interest_rate)
-    CallDF = pd.DataFrame(CallData, columns=[f'Col {i}' for i in range(global_map_dimension)])
-    #CallDF.rename(columns=global_spot_price_intervals, inplace=True)
-    CallDF.index = global_spot_price_intervals
+    CallDF = pd.DataFrame(CallData, columns=[global_volatility_intervals[i] for i in range(global_map_dimension)])
 
-    st.write("Put Heat Map")
-    CreateHeatMap("PutHeatMap", PutDF)
+    CallDF.index = global_spot_price_intervals  #Edit row labels
+    
+    # Create two columns
+    col1, col2 = st.columns(2,gap="small",vertical_alignment="center",)
 
-    st.write("Call Heat Map")
-    CreateHeatMap("Call Heat Map", CallDF)
+    # Place the first chart in the first column
+    with col1:
+        CreateHeatMap("Put Heat Map", PutDF)
+
+    # Place the second chart in the second column
+    with col2:
+        CreateHeatMap("Call Heat Map", CallDF)
+
+    #cont = st.container(horizontal=True,border=True)
+    #with cont:
+    #    CreateHeatMap("Put Heat Map", PutDF)
+    #    CreateHeatMap("Call Heat Map", CallDF)
+        
 
 def InitDefaultGlobals(volatility, spot_price):
     temp_global_volatility_intervals = []
@@ -74,8 +88,10 @@ def InitDefaultGlobals(volatility, spot_price):
 def CreateHeatMap(title, dataframe):
     # Create a heatmap using Seaborn
     plt.figure(figsize=(global_map_dimension, global_map_dimension))
-    sns.heatmap(dataframe, annot=True, fmt=".01f", cmap='coolwarm', square=True, xticklabels=True, yticklabels=True) #index="Volatility", columns="Spot Price", )
-
+    sns.heatmap(dataframe, annot=True, fmt=".01f", cbar=False, cmap='coolwarm', square=True, xticklabels=True, yticklabels=True)
+    plt.title(title, fontsize = 20)
+    plt.xlabel('Volatility', fontsize = 15) # x-axis label with fontsize 15
+    plt.ylabel('Spot Price', fontsize = 15) # y-axis label with fontsize 15
     # Show the plot in Streamlit
     st.pyplot(plt)
 
