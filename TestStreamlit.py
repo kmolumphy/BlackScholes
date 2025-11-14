@@ -36,12 +36,11 @@ def CreateStreamLitInterface():
     InitDefaultGlobals()
 
     # Create Input Var Widgets
-    strikeprice = globals()['global_stock_price']
-    global_stock_price = st.number_input("Stock Price", placeholder=strikeprice)
-    global_strike_price = st.number_input("Strike Price", placeholder=globals()['global_strike_price'])
-    global_time_to_expiry = st.number_input("Time to Expiration", placeholder=globals()['global_time_to_expiry'])
-    global_volatility = st.number_input("Volatility", placeholder=globals()['global_volatility'])
-    global_interest_rate = st.number_input("Risk-Free Interest Rate ", placeholder=globals()['global_interest_rate'])
+    global_stock_price = st.number_input("Stock Price", placeholder=str(globals()['global_stock_price']))
+    global_strike_price = st.number_input("Strike Price", placeholder=str(globals()['global_strike_price']))
+    global_time_to_expiry = st.number_input("Time to Expiration", placeholder=str(globals()['global_time_to_expiry']))
+    global_volatility = st.number_input("Volatility", placeholder=str(globals()['global_volatility']))
+    global_interest_rate = st.number_input("Risk-Free Interest Rate ", placeholder=str(globals()['global_interest_rate']))
 
     # Create heat maps based on inputs
     PutDF = pd.DataFrame(CreatePutData(), columns=[f'Col {i}' for i in range(global_map_dimension)])
