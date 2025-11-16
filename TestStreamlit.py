@@ -5,6 +5,8 @@ import seaborn as sns
 import numpy as np
 from scipy.stats import norm
 import math
+import yfinance as yf
+from datetime import datetime
 
 
 # Define Black Scholes inputs as globals for ease of access
@@ -32,13 +34,40 @@ def CreateStreamLitInterface():
 
     with st.sidebar:
         st.write("Input Parameters:")
-        global_stock_price = st.number_input("Stock Price", value=30.00, min_value=0.01, placeholder="Enter Stock Price: ")
-        global_strike_price = st.number_input("Strike Price", value=20.00, min_value=0.01, placeholder="Enter Strike Price: ")
-        global_time_to_expiry = st.number_input("Time to Expiration", value=5.00, min_value=0.01, placeholder="Enter Time To Expiry: ")
-        global_volatility = st.number_input("Volatility", value=0.50, min_value=0.01, placeholder="Enter Volatility: ")
-        global_interest_rate = st.number_input("Risk-Free Interest Rate ", value=0.05, min_value=0.01, placeholder="Enter Global Interest Rate: ")
 
-    InitDefaultGlobals(global_volatility, global_stock_price)
+        default_stock_price = 30.00
+        default_volatility = 0.50
+        default_strike_price = 20.00
+        default_time_to_expiry = 1.00
+        default_global_interest_rate = 0.05
+
+        # Check population of ticker symbol input
+        company_symbol = st.text_input("Company Symbol", value="none",  placeholder="Enter Company Symbol: ").upper()
+        if (company_symbol != ""):
+            company_ticker = yf.Ticker(company_symbol)
+            # Fetch historical data, we eventually want to store this info to avoid repeated downloads
+            current_datetime = datetime.today()
+            year_ago_datetime = datetime(year=(current_datetime.year-1), month=current_datetime.month, day=current_datetime.day)
+            stock_data = yf.download(company_symbol, start=year_ago_datetime, end=current_datetime)
+
+            if (len(company_ticker.info) > 1 and stock_data.size != 0): # This means company info is valid
+                default_stock_price = GetStockPrice(company_ticker)
+                calculated_volatility = CalculateVolatility(stock_data, company_symbol)
+                if (calculated_volatility != 0): default_volatility = calculated_volatility
+                st.write("Valid Symbol Found! Finding Stock Price and Calculating Volatility (1 yr)")
+            elif (company_symbol != "none"):
+                st.write("No Valid Symbol Found!")
+
+        global_stock_price = st.number_input("Stock Price", value=default_stock_price, min_value=0.01, format="%.2f", placeholder="Enter Stock Price: ")
+        global_volatility = st.number_input("Volatility", value=default_volatility, min_value=0.01, format="%.5f", placeholder="Enter Volatility: ")
+        global_strike_price = st.number_input("Strike Price", value=default_strike_price, min_value=0.01, format="%.2f", placeholder="Enter Strike Price: ")
+        global_time_to_expiry = st.number_input("Time to Expiration", value=default_time_to_expiry, min_value=0.01, format="%.2f", placeholder="Enter Time To Expiry: (yrs)")
+        global_interest_rate = st.number_input("Risk-Free Interest Rate ", value=default_global_interest_rate, min_value=0.01, format="%.2f", placeholder="Enter Global Interest Rate: ")
+
+        global_volatility_variability = st.slider("Volatility Variability", value=0.5, format="%.2f")
+        global_spot_price_variability = st.slider("Spot Price Variability", value=0.5, format="%.2f")
+
+    InitDefaultGlobals(global_volatility, global_stock_price, global_volatility_variability, global_spot_price_variability)
 
     #global_strike_price = max(0.01, global_strike_price) # Cannot be 0
 
@@ -64,19 +93,25 @@ def CreateStreamLitInterface():
     with col2:
         CreateHeatMap("Call Heat Map", CallDF)
 
-    #cont = st.container(horizontal=True,border=True)
-    #with cont:
-    #    CreateHeatMap("Put Heat Map", PutDF)
-    #    CreateHeatMap("Call Heat Map", CallDF)
-        
 
-def InitDefaultGlobals(volatility, spot_price):
+def CalculateVolatility(stock_data ,company_name):
+    # Calculate daily returns (percentage change)
+    daily_returns = stock_data['Close'].pct_change().dropna()
+
+    # Calculate daily volatility (standard deviation of daily returns)
+    daily_volatility = daily_returns.std()
+    return daily_volatility[company_name]
+    
+def GetStockPrice(company_ticker):
+    return company_ticker.info.get('regularMarketPrice')
+
+def InitDefaultGlobals(volatility, spot_price, volatility_variability, spot_price_variability):
     temp_global_volatility_intervals = []
     temp_global_spot_price_intervals = []
-    global_min_volatility = volatility * 0.5
-    global_max_volatility = volatility * 1.5
-    global_min_spot_price = spot_price * 0.5
-    global_max_spot_price = spot_price * 1.5
+    global_min_volatility = volatility + volatility * -volatility_variability
+    global_max_volatility = volatility + volatility * volatility_variability
+    global_min_spot_price = spot_price + spot_price * -spot_price_variability
+    global_max_spot_price = spot_price + spot_price * spot_price_variability
     for num in range(global_map_dimension):
         temp_global_volatility_intervals.append(GetVolatility(num, global_min_volatility, global_max_volatility))
         temp_global_spot_price_intervals.append(GetCurrentSpotPrice(num, global_min_spot_price, global_max_spot_price))
