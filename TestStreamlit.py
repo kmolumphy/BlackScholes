@@ -44,14 +44,10 @@ def CreateStreamLitInterface():
         # Check population of ticker symbol input
         company_symbol = st.text_input("Company Symbol", value="none",  placeholder="Enter Company Symbol: ").upper()
         if (company_symbol != ""):
-            company_ticker = yf.Ticker(company_symbol)
-            # Fetch historical data, we eventually want to store this info to avoid repeated downloads
-            current_datetime = datetime.today()
-            year_ago_datetime = datetime(year=(current_datetime.year-1), month=current_datetime.month, day=current_datetime.day)
-            stock_data = yf.download(company_symbol, start=year_ago_datetime, end=current_datetime)
+            ticker_info, stock_data = FetchTickerData(company_symbol)
 
-            if (len(company_ticker.info) > 1 and stock_data.size != 0): # This means company info is valid
-                default_stock_price = GetStockPrice(company_ticker)
+            if (len(ticker_info) > 1 and stock_data.size != 0): # This means company info is valid
+                default_stock_price = ticker_info.get('regularMarketPrice')
                 calculated_volatility = CalculateVolatility(stock_data, company_symbol)
                 if (calculated_volatility != 0): default_volatility = calculated_volatility
                 st.write("Valid Symbol Found! Finding Stock Price and Calculating Volatility (1 yr)")
@@ -94,6 +90,14 @@ def CreateStreamLitInterface():
         CreateHeatMap("Call Heat Map", CallDF)
 
 
+@st.cache_data(ttl=3600)
+def FetchTickerData(symbol):
+    current_datetime = datetime.today()
+    year_ago_datetime = datetime(year=(current_datetime.year-1), month=current_datetime.month, day=current_datetime.day)
+    ticker_info = yf.Ticker(symbol).info
+    stock_data = yf.download(symbol, start=year_ago_datetime, end=current_datetime)
+    return ticker_info, stock_data
+
 def CalculateVolatility(stock_data ,company_name):
     # Calculate daily returns (percentage change)
     daily_returns = stock_data['Close'].pct_change().dropna()
@@ -102,8 +106,6 @@ def CalculateVolatility(stock_data ,company_name):
     daily_volatility = daily_returns.std()
     return daily_volatility[company_name] * math.sqrt(252)
     
-def GetStockPrice(company_ticker):
-    return company_ticker.info.get('regularMarketPrice')
 
 def InitDefaultGlobals(volatility, spot_price, volatility_variability, spot_price_variability):
     temp_global_volatility_intervals = []
