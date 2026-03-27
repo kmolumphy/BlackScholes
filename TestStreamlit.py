@@ -29,8 +29,8 @@ def main():
 
 
 def CreateStreamLitInterface():
-    st.title("Black Scholes")
     st.set_page_config(layout="wide")
+    st.title("Black Scholes")
 
     with st.sidebar:
         st.write("Input Parameters:")
@@ -100,7 +100,7 @@ def CalculateVolatility(stock_data ,company_name):
 
     # Calculate daily volatility (standard deviation of daily returns)
     daily_volatility = daily_returns.std()
-    return daily_volatility[company_name]
+    return daily_volatility[company_name] * math.sqrt(252)
     
 def GetStockPrice(company_ticker):
     return company_ticker.info.get('regularMarketPrice')
