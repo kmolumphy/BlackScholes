@@ -1,5 +1,6 @@
 pandas
 streamlit
+altair<5
 matplotlib
 seaborn
 numpy
